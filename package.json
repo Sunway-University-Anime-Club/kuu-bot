@@ -1,0 +1,30 @@
+{
+  "name": "kuu-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for SUAC",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "npx nodemon src/index.ts",
+    "build": "rm -rf -f dist/ && rm tsconfig.tsbuildinfo -f && npx tsc -b",
+    "start": "node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sunway-University-Anime-Club/kuu-bot.git"
+  },
+  "author": "Spimy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sunway-University-Anime-Club/kuu-bot/issues"
+  },
+  "homepage": "https://github.com/Sunway-University-Anime-Club/kuu-bot#readme",
+  "devDependencies": {
+    "nodemon": "^3.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.4"
+  }
+}

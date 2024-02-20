@@ -120,20 +120,54 @@ client.on('messageCreate', async (message) => {
   rows.shift();
 
   // Check if username response match new discord user
+  let foundUser = false;
   const username = message.member?.user.username;
+
   for (const row of rows) {
     if (row[0] !== username) continue;
 
     // If match is found then send email as reminder and exit the loop
-    const paymentProof = row[3] || 'Not Found';
-    emailClient.sendMail({
+    const paymentProof =
+      row[3] ||
+      `Not Found and require manual check at the Spreadsheet at https://docs.google.com/spreadsheets/d/${process.env.REGISTRATION_FORM_ID}.`;
+
+    await emailClient.sendMail({
       to: `${process.env.EMAIL_USER}`,
       from: `Spimy - <${process.env.EMAIL_USER}>`,
       subject: 'SUAC Kuu-Bot: New Discord Member',
       text: `A new member, ${username} , has joined the Discord server. Proof of payment: ${paymentProof}.`
     });
 
+    foundUser = true;
     break;
+  }
+
+  // If no match was found in the spreadsheet, notify to do a manual check
+  // This is because user might have not registered via the form but found a way into the server
+  if (!foundUser) {
+    await emailClient.sendMail({
+      to: `${process.env.EMAIL_USER}`,
+      from: `Spimy - <${process.env.EMAIL_USER}>`,
+      subject: 'SUAC Kuu-Bot: Discord Member with no Registration',
+      html: `
+        <p>
+          A new user who has joined the Discord server without registering through the Google Forms has been detected.
+          </br>
+          A manual check is required to ensure this was not a mistake.
+        
+          </br>
+          </br>
+
+          <b>Discord User Information</b>
+          </br>
+          Username: ${username}
+          </br>
+          Display Name: ${message.member?.user.displayName}
+          </br>
+          User ID: ${message.member?.id}
+        </p>
+      `
+    });
   }
 });
 

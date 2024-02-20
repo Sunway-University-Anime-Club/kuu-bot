@@ -1,4 +1,4 @@
-import { Client, IntentsBitField } from 'discord.js';
+import { Client, GuildMember, IntentsBitField } from 'discord.js';
 import dotenv from 'dotenv';
 import { google } from 'googleapis';
 import { createTransport } from 'nodemailer';
@@ -40,9 +40,54 @@ const emailClient = createTransport({
   }
 });
 
+/**
+ * Calculate when to kick a user
+ * If timeout is greater than kick timeout in config, user will be immediately kicked
+ *
+ * @param {GuildMember} member
+ * @param {number} [timeout=config.kickTimeout]
+ * @return {*}
+ */
+function kickControl(member: GuildMember, timeout: number = config.kickTimeout): any {
+  const reason = 'User stuck with "Intro Arc" role for too long.';
+
+  // Kick user if the timeout is greater than the kick timeout
+  if (timeout > config.kickTimeout) return member.kick(reason);
+
+  setTimeout(async () => {
+    // No need to kick user if user no longer has intro role
+    if (!member.roles.cache.has(config.introRoleId)) return;
+
+    // Kick user
+    await member.kick(reason);
+  }, timeout);
+}
+
 client.on('ready', async (client) => {
+  client.guilds.fetch(config.guildId).then(async (guild) => {
+    // Fetch all members in the guild
+    await guild.members.fetch();
+
+    // Get the current time in timestamp format
+    const now = new Date().getTime();
+
+    // Get all members with intro role to control user kick
+    guild.roles.fetch(config.introRoleId).then((role) => {
+      role?.members.forEach((member) => {
+        kickControl(member, now - (member.joinedTimestamp ?? 0));
+      });
+    });
+  });
+
   // Notify success for discord bot login
   console.log(`Logged in as ${client.user.username}`);
+});
+
+client.on('guildMemberAdd', async (member) => {
+  member.roles
+    .add(config.introRoleId)
+    .then(kickControl)
+    .catch(() => kickControl(member)); // In case of any errors
 });
 
 client.on('messageCreate', async (message) => {

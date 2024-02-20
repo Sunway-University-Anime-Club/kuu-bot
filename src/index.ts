@@ -22,7 +22,8 @@ const client = new Client({
     IntentsBitField.Flags.GuildMembers,
     IntentsBitField.Flags.MessageContent,
     IntentsBitField.Flags.GuildMessages,
-    IntentsBitField.Flags.Guilds
+    IntentsBitField.Flags.Guilds,
+    IntentsBitField.Flags.DirectMessages
   ]
 });
 
@@ -52,15 +53,33 @@ function kickControl(member: GuildMember, timeout: number = config.kickTimeout):
   const reason = 'User stuck with "Intro Arc" role for too long.';
 
   // Kick user if the timeout is greater than the kick timeout
-  if (timeout > config.kickTimeout) return member.kick(reason);
+  if (timeout > config.kickTimeout) {
+    return notifyKick(member).then(async () => await member.kick(reason));
+  }
 
   setTimeout(async () => {
     // No need to kick user if user no longer has intro role
     if (!member.roles.cache.has(config.introRoleId)) return;
 
     // Kick user
-    await member.kick(reason);
+    notifyKick(member).then(async () => {
+      await member.kick(reason);
+    });
   }, timeout);
+}
+
+/**
+ * Utility function to notify kicked user of their kick
+ *
+ * @param {GuildMember} member
+ */
+async function notifyKick(member: GuildMember) {
+  await member
+    .send({
+      content:
+        'Yo dazo! You have been automatically kicked for not having been verified by our committee. Please reach out to @officialspimy if you think this was a mistake! Ja ne~'
+    })
+    .catch((_) => {}); // Do nothing if error (likely means user disabled DMs)
 }
 
 client.on('ready', async (client) => {

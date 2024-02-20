@@ -19,12 +19,15 @@
   },
   "homepage": "https://github.com/Sunway-University-Anime-Club/kuu-bot#readme",
   "devDependencies": {
+    "@types/nodemailer": "^6.4.14",
     "nodemon": "^3.0.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
     "discord.js": "^14.14.1",
-    "dotenv": "^16.4.4"
+    "dotenv": "^16.4.4",
+    "googleapis": "^133.0.0",
+    "nodemailer": "^6.9.9"
   }
 }

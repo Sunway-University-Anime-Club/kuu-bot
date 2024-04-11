@@ -22,7 +22,8 @@ export function kickControl(
 
   setTimeout(async () => {
     // No need to kick user if user no longer has intro role
-    if (!member.roles.cache.has(config.introRoleId)) return;
+    const updatedMember = await member.fetch();
+    if (!updatedMember.roles.cache.has(config.introRoleId)) return;
 
     // Kick user
     notifyKick(member).then(async () => {
@@ -43,4 +44,9 @@ export async function notifyKick(member: GuildMember) {
         'Yo dazo! You have been automatically kicked for not having been verified by our committee. Please reach out to @officialspimy if you think this was a mistake! Ja ne~'
     })
     .catch((_) => {}); // Do nothing if error (likely means user disabled DMs)
+}
+
+export enum VerificationButtons {
+  VEFIFY = 'verify',
+  REJECT = 'reject'
 }

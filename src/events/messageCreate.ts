@@ -1,7 +1,16 @@
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  Colors,
+  EmbedBuilder,
+  TextChannel
+} from 'discord.js';
 import { google } from 'googleapis';
 import { createTransport } from 'nodemailer';
 import { client } from '..';
 import config from '../config';
+import { VerificationButtons } from '../utils';
 
 // Create the google client to access spreadsheets
 const service = google.sheets('v4');
@@ -59,19 +68,59 @@ client.on('messageCreate', async (message) => {
   let foundUser = false;
   const username = message.member?.user.username;
 
+  // Fetch the verification channel
+  const verificationChannel = (await message.guild?.channels.fetch(
+    config.verificationChannelId
+  )) as TextChannel;
+
   for (const row of rows) {
+    // If match is not found then skip to the next iteration
     if (row[0] !== username) continue;
 
-    // If match is found then send email as reminder and exit the loop
-    const paymentProof =
-      row[3] ||
-      `Not Found and require manual check at the Spreadsheet at https://docs.google.com/spreadsheets/d/${process.env.REGISTRATION_FORM_ID}.`;
+    const manualCheckUrl = `Not Found and require manual check at the Spreadsheet at https://docs.google.com/spreadsheets/d/${process.env.REGISTRATION_FORM_ID}.`;
+    const paymentProof = row[3] || manualCheckUrl;
+    const favHusWaifu = row[row.length - 1] || manualCheckUrl;
 
+    // Send email as reminder, send embed to verification channel and exit the loop
     await emailClient.sendMail({
       to: `${process.env.EMAIL_USER}`,
       from: `Spimy - <${process.env.EMAIL_USER}>`,
       subject: 'SUAC Kuu-Bot: New Discord Member',
       text: `A new member, ${username} , has joined the Discord server. Proof of payment: ${paymentProof}.`
+    });
+
+    // Set up the embed containing the necessary information
+    const embed = new EmbedBuilder()
+      .setAuthor({
+        name: message.author.displayName,
+        iconURL: message.author.displayAvatarURL()
+      })
+      .setColor(Colors.Orange)
+      .setDescription(message.content)
+      .addFields(
+        { name: 'Proof of Payment', value: paymentProof },
+        { name: 'Favourite Husbando/Waifu', value: favHusWaifu }
+      )
+      .setTimestamp();
+
+    // Verify user and give them the appropriate roles
+    const verifyButton = new ButtonBuilder()
+      .setCustomId(`${VerificationButtons.VEFIFY}-${message.author.id}`)
+      .setLabel('Verify')
+      .setStyle(ButtonStyle.Success);
+
+    // Reject user to automatically kick the user out
+    const rejectButton = new ButtonBuilder()
+      .setCustomId(`${VerificationButtons.REJECT}-${message.author.id}`)
+      .setLabel('Reject')
+      .setStyle(ButtonStyle.Danger);
+
+    // Send the embed with the buttons to the verification channel
+    verificationChannel.send({
+      embeds: [embed],
+      components: [
+        new ActionRowBuilder<ButtonBuilder>().addComponents(verifyButton, rejectButton)
+      ]
     });
 
     foundUser = true;

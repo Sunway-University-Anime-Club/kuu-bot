@@ -35,6 +35,8 @@ const emailClient = createTransport({
   }
 });
 
+const SPREADSHEET_URL = `https://docs.google.com/spreadsheets/d/${process.env.REGISTRATION_FORM_ID}`;
+
 client.on('messageCreate', async (message) => {
   // Check if the message was sent in the intro channel
   if (message.channelId !== config.introChannelId) return;
@@ -73,11 +75,39 @@ client.on('messageCreate', async (message) => {
     config.verificationChannelId
   )) as TextChannel;
 
+  // Set up the embed containing the necessary information
+  const embed = new EmbedBuilder()
+    .setAuthor({
+      name: message.author.displayName,
+      iconURL: message.author.displayAvatarURL()
+    })
+    .setColor(Colors.Orange)
+    .setDescription(message.content)
+    .setTimestamp();
+
+  // Verify user and give them the appropriate roles
+  const verifyButton = new ButtonBuilder()
+    .setCustomId(`${VerificationButtons.VEFIFY}-${message.author.id}`)
+    .setLabel('Verify')
+    .setStyle(ButtonStyle.Success);
+
+  // Reject user to automatically kick the user out
+  const rejectButton = new ButtonBuilder()
+    .setCustomId(`${VerificationButtons.REJECT}-${message.author.id}`)
+    .setLabel('Reject')
+    .setStyle(ButtonStyle.Danger);
+
+  // Add component row for the verify and reject buttons
+  const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    verifyButton,
+    rejectButton
+  );
+
   for (const row of rows) {
     // If match is not found then skip to the next iteration
     if (row[0] !== username) continue;
 
-    const manualCheckUrl = `Not Found and require manual check at the Spreadsheet at https://docs.google.com/spreadsheets/d/${process.env.REGISTRATION_FORM_ID}.`;
+    const manualCheckUrl = `Not Found and require manual check at the Spreadsheet at ${SPREADSHEET_URL}`;
     const paymentProof = row[3] || manualCheckUrl;
     const favHusWaifu = row[row.length - 1] || manualCheckUrl;
 
@@ -89,38 +119,16 @@ client.on('messageCreate', async (message) => {
       text: `A new member, ${username} , has joined the Discord server. Proof of payment: ${paymentProof}.`
     });
 
-    // Set up the embed containing the necessary information
-    const embed = new EmbedBuilder()
-      .setAuthor({
-        name: message.author.displayName,
-        iconURL: message.author.displayAvatarURL()
-      })
-      .setColor(Colors.Orange)
-      .setDescription(message.content)
-      .addFields(
-        { name: 'Proof of Payment', value: paymentProof },
-        { name: 'Favourite Husbando/Waifu', value: favHusWaifu }
-      )
-      .setTimestamp();
-
-    // Verify user and give them the appropriate roles
-    const verifyButton = new ButtonBuilder()
-      .setCustomId(`${VerificationButtons.VEFIFY}-${message.author.id}`)
-      .setLabel('Verify')
-      .setStyle(ButtonStyle.Success);
-
-    // Reject user to automatically kick the user out
-    const rejectButton = new ButtonBuilder()
-      .setCustomId(`${VerificationButtons.REJECT}-${message.author.id}`)
-      .setLabel('Reject')
-      .setStyle(ButtonStyle.Danger);
+    // Add found fields to the embed
+    embed.addFields(
+      { name: 'Proof of Payment', value: paymentProof },
+      { name: 'Favourite Husbando/Waifu', value: favHusWaifu }
+    );
 
     // Send the embed with the buttons to the verification channel
-    verificationChannel.send({
+    await verificationChannel.send({
       embeds: [embed],
-      components: [
-        new ActionRowBuilder<ButtonBuilder>().addComponents(verifyButton, rejectButton)
-      ]
+      components: [actionRow]
     });
 
     foundUser = true;
@@ -130,6 +138,9 @@ client.on('messageCreate', async (message) => {
   // If no match was found in the spreadsheet, notify to do a manual check
   // This is because user might have not registered via the form but found a way into the server
   if (!foundUser) {
+    const displayName = message.member?.user.displayName;
+    const userId = message.member?.id;
+
     await emailClient.sendMail({
       to: `${process.env.EMAIL_USER}`,
       from: `Spimy - <${process.env.EMAIL_USER}>`,
@@ -147,11 +158,28 @@ client.on('messageCreate', async (message) => {
           </br>
           Username: ${username}
           </br>
-          Display Name: ${message.member?.user.displayName}
+          Display Name: ${displayName}
           </br>
-          User ID: ${message.member?.id}
+          User ID: ${userId}
         </p>
       `
+    });
+
+    // Add additional information to the embed
+    embed.addFields(
+      {
+        name: 'Issue',
+        value: `User not found in [Spreadsheet](${SPREADSHEET_URL}). Manual check required.`
+      },
+      { name: 'Username', value: `${username}` },
+      { name: 'Display Name', value: `${displayName}` },
+      { name: 'User ID', value: `${userId}` }
+    );
+
+    // Send the embed with the buttons to the verification channel
+    await verificationChannel.send({
+      embeds: [embed],
+      components: [actionRow]
     });
   }
 });

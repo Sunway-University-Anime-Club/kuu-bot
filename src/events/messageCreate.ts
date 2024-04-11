@@ -39,7 +39,7 @@ const SPREADSHEET_URL = `https://docs.google.com/spreadsheets/d/${process.env.RE
 
 client.on('messageCreate', async (message) => {
   // Check if the message was sent in the intro channel
-  if (message.channelId !== config.introChannelId) return;
+  if (message.channelId !== config.channelIds.intro) return;
 
   // Authenticate the google client
   const token = await googleClient.authorize();
@@ -72,7 +72,7 @@ client.on('messageCreate', async (message) => {
 
   // Fetch the verification channel
   const verificationChannel = (await message.guild?.channels.fetch(
-    config.verificationChannelId
+    config.channelIds.verification
   )) as TextChannel;
 
   // Set up the embed containing the necessary information

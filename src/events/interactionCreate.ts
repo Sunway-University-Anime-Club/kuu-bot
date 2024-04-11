@@ -29,10 +29,10 @@ client.on('interactionCreate', async (interaction) => {
   // Handle verify button press
   if (btnType === VerificationButtons.VEFIFY) {
     // Remove the intro arc role
-    await member.roles.remove(config.introRoleId).then(async () => {
+    await member.roles.remove(config.roleIds.intro).then(async () => {
       // Add the freshie and member role
-      await member.roles.add(config.freshieRoleId);
-      await member.roles.add(config.memberRoleId);
+      await member.roles.add(config.roleIds.freshie);
+      await member.roles.add(config.roleIds.member);
 
       // Show feedback for successful verification
       await interaction.reply({

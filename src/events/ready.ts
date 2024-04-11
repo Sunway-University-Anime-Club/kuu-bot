@@ -11,7 +11,7 @@ client.on('ready', async (client) => {
     const now = new Date().getTime();
 
     // Get all members with intro role to control user kick
-    guild.roles.fetch(config.introRoleId).then((role) => {
+    guild.roles.fetch(config.roleIds.intro).then((role) => {
       role?.members.forEach((member) => {
         kickControl(member, now - (member.joinedTimestamp ?? 0));
       });

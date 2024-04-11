@@ -23,7 +23,7 @@ export function kickControl(
   setTimeout(async () => {
     // No need to kick user if user no longer has intro role
     const updatedMember = await member.fetch();
-    if (!updatedMember.roles.cache.has(config.introRoleId)) return;
+    if (!updatedMember.roles.cache.has(config.roleIds.intro)) return;
 
     // Kick user
     notifyKick(member).then(async () => {

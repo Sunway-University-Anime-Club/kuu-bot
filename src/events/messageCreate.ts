@@ -38,7 +38,7 @@ client.on('messageCreate', async (message) => {
   const response = await service.spreadsheets.values.get({
     auth: googleClient,
     spreadsheetId: process.env.REGISTRATION_FORM_ID,
-    range: 'F:I'
+    range: config.spreadsheetColumns
   });
 
   // Check if fetch request was successful

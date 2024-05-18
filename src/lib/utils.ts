@@ -1,5 +1,5 @@
 import { GuildMember } from 'discord.js';
-import config from './config';
+import config from '../config';
 
 /**
  * Calculate when to kick a user

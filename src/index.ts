@@ -5,7 +5,6 @@ import { KuuClient } from './lib/client';
 // Load environment variables
 dotenv.config();
 
-// Setup the bot client and register slash commands
 const bootstrap = async () => {
   // Create the discord bot client
   const client = new KuuClient({

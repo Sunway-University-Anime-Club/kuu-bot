@@ -20,5 +20,8 @@ dist/
 .env
 !.env.example
 
+# Config files
+/src/config.ts
+
 # tsconfig tsbuildinfo
 *.tsbuildinfo

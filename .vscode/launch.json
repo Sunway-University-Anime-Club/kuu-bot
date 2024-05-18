@@ -12,8 +12,8 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "skipFiles": ["<node_internals>/**"],
-      "runtimeExecutable": "yarn",
-      "runtimeArgs": ["dev"]
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run", "dev"]
     }
   ]
 }

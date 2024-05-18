@@ -4,8 +4,9 @@
   "description": "Discord bot for SUAC",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "npx nodemon src/index.ts",
-    "build": "rm -rf -f dist/ && rm tsconfig.tsbuildinfo -f && npx tsc -b",
+    "preinstall": "npx only-allow pnpm",
+    "dev": "pnpm exec nodemon src/index.ts",
+    "build": "rm -rf -f dist/ && rm tsconfig.tsbuildinfo -f && pnpm exec tsc -b",
     "start": "node dist/index.js"
   },
   "repository": {

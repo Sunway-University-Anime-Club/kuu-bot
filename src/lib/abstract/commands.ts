@@ -92,11 +92,11 @@ export abstract class Command<T extends LegacyCommand | SlashCommand> {
     };
   }
 
-  public isLegacy(): this is LegacyCommand {
+  public isLegacy(): this is Command<LegacyCommand> {
     return 'aliases' in this.command;
   }
 
-  public isSlash(): this is SlashCommand {
+  public isSlash(): this is Command<SlashCommand> {
     return !('aliases' in this.command);
   }
 }

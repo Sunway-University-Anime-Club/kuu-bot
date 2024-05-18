@@ -7,9 +7,9 @@ import { EventListener } from './abstract/events';
 export type KuuModules = 'commands' | 'events';
 
 export type CommandModule = {
-  [key in LegacyCommand['key']]: Collection<string, LegacyCommand>;
+  [key in LegacyCommand['key']]: Collection<string, Command<LegacyCommand>>;
 } & {
-  [key in SlashCommand['key']]: Collection<string, SlashCommand>;
+  [key in SlashCommand['key']]: Collection<string, Command<SlashCommand>>;
 };
 
 export class KuuClient extends Client {

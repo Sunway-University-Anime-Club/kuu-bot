@@ -1,17 +1,33 @@
-import { ButtonInteraction, Colors, Interaction } from 'discord.js';
+import {
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  Colors,
+  EmbedBuilder,
+  Interaction
+} from 'discord.js';
 import config from '../config';
 import { EventListener } from '../lib/abstract/events';
+import { KuuClient } from '../lib/client';
 import { VerificationButtons } from '../lib/utils';
 
 export default class extends EventListener<'interactionCreate'> {
-  constructor() {
+  constructor(private client: KuuClient) {
     super('interactionCreate');
   }
 
-  async execute(interaction: Interaction): Promise<void> {
-    // If the interaction is not a button press, ignore
-    if (!(interaction instanceof ButtonInteraction)) return;
+  async execute(interaction: Interaction): Promise<any> {
+    // Handle command interactions
+    if (interaction.isChatInputCommand()) {
+      return this.handleCommandInteraction(interaction);
+    }
 
+    // Handle button interactions
+    if (interaction.isButton()) {
+      return this.handleButtonInteraction(interaction);
+    }
+  }
+
+  async handleButtonInteraction(interaction: ButtonInteraction) {
     // Get button type
     const [btnType, userId] = interaction.customId.split('-');
 
@@ -74,6 +90,44 @@ export default class extends EventListener<'interactionCreate'> {
           .catch((_) => {});
       });
       return;
+    }
+  }
+
+  async handleCommandInteraction(interaction: ChatInputCommandInteraction) {
+    const command = this.client.slashCommands.get(interaction.commandName);
+    const embed = new EmbedBuilder().setColor('Red');
+
+    /**
+     * If command is not found, let user know.
+     * Realistically this should never happen but just in case of edge cases.
+     * * In theory, this could happen if the command was deleted but is still registered on Discord's side.
+     * ! NOTE: I have not implemented a way to unregister commands on Discord's side (yet).
+     */
+    if (!command) {
+      embed.setDescription(
+        `There were no command matching ${interaction.commandName} found.`
+      );
+      return await interaction.reply({
+        embeds: [embed],
+        ephemeral: true
+      });
+    }
+
+    try {
+      const success = await command.execute(interaction);
+      if (success) return;
+
+      embed.setDescription('Please check the command descriptions for proper usage.');
+      return await interaction.reply({
+        embeds: [embed],
+        ephemeral: true
+      });
+    } catch {
+      embed.setDescription('Something went wrong while trying to execute this command');
+      return await interaction.reply({
+        embeds: [embed],
+        ephemeral: true
+      });
     }
   }
 }

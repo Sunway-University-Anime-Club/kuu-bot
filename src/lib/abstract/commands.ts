@@ -1,6 +1,6 @@
 import {
   ChatInputApplicationCommandData,
-  CommandInteraction,
+  ChatInputCommandInteraction,
   Message,
   PermissionResolvable
 } from 'discord.js';
@@ -54,7 +54,7 @@ export interface SlashCommand {
  */
 export interface KuuCommands {
   LegacyCommand: [message: Message<true>, args: string[]];
-  SlashCommand: [interaction: CommandInteraction];
+  SlashCommand: [interaction: ChatInputCommandInteraction];
 }
 
 /**

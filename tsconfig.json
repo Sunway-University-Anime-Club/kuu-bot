@@ -1,21 +1,18 @@
 {
-	"compilerOptions": {
-		"target": "es6",
-		"module": "commonjs",
-		"strict": true,
-		"rootDir": "./src",
-		"outDir": "./dist",
-		"resolveJsonModule": true,
-		"experimentalDecorators": true,
-		"moduleResolution": "node",
-		"esModuleInterop": true,
-		"emitDecoratorMetadata": true,
-		"skipLibCheck": true,
-		"forceConsistentCasingInFileNames": true,
-		"composite": true,
-		"declaration": true,
-		"declarationMap": true
-	},
-	"ts-node": { "files": true },
-	"include": ["./src"]
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "strict": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "ts-node": { "files": true },
+  "include": ["./src"]
 }

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Discord bot for SUAC",
   "main": "dist/index.js",
+  "packageManager": "pnpm@9.1.1",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev": "pnpm exec nodemon src/index.ts",

@@ -2,6 +2,7 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       TOKEN: string;
+      APPLICATION_ID: string;
       GOOGLE_TYPE: string;
       GOOGLE_PROJECT_ID: string;
       GOOGLE_PRIVATE_KEY_ID: string;

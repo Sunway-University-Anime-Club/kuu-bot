@@ -1,13 +1,12 @@
 import { IntentsBitField } from 'discord.js';
 import dotenv from 'dotenv';
-import { KuuClient } from './client';
+import { KuuClient } from './lib/client';
 
 // Load environment variables
 dotenv.config();
 
 // Create the discord bot client
 const client = new KuuClient({
-  root: __dirname,
   intents: [
     IntentsBitField.Flags.GuildMembers,
     IntentsBitField.Flags.MessageContent,
@@ -18,4 +17,3 @@ const client = new KuuClient({
 });
 
 client.login(process.env.TOKEN);
-export { client };

@@ -1,1 +1,0 @@
-ALTER TABLE "members" RENAME TO "discord_members";

@@ -1,11 +1,11 @@
 {
-  "id": "e1569e45-9262-490f-a35e-aea3ce020b4f",
+  "id": "a2734632-5828-43b3-9a99-c4a7be8b3b52",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "6",
   "dialect": "postgresql",
   "tables": {
-    "public.members": {
-      "name": "members",
+    "public.discord_members": {
+      "name": "discord_members",
       "schema": "",
       "columns": {
         "discord_id": {

@@ -13,7 +13,7 @@ export class BirthdayManager {
 
   constructor(private client: KuuClient) {
     this.cronjob = CronJob.from({
-      cronTime: '0 19 * * *', // every 12 am (midnight)
+      cronTime: '0 0 * * *', // every 12 am (midnight)
       onTick: () => this.announceBirthday(),
       timeZone: 'Asia/Kuala_Lumpur'
     });
@@ -85,7 +85,6 @@ export class BirthdayManager {
    * @memberof BirthdayManager
    */
   private async announceBirthday() {
-    console.log('announce');
     const guild = await this.client.guilds.fetch(config.guildId).catch(() => null);
     if (!guild) return console.error('[Birthday] Could not find guild.');
 

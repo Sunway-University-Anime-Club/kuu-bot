@@ -15,10 +15,6 @@ declare global {
       GOOGLE_CLIENT_CERT_URL: string;
       GOOGLE_UNIVERSE_DOMAIN: string;
       REGISTRATION_FORM_ID: string;
-      EMAIL_HOST: string;
-      EMAIL_PORT: string;
-      EMAIL_USER: string;
-      EMAIL_PASSWORD: string;
       DATABASE_URI: string;
     }
   }

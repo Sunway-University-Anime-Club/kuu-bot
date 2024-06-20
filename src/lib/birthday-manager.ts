@@ -49,6 +49,13 @@ export class BirthdayManager {
       .catch(() => false);
   }
 
+  /**
+   * Set the birthday of the member to NULL in the database
+   *
+   * @param {string} memberId - The Discord ID of the member
+   * @return {*}  {Promise<boolean>} - true if successfully updated database, false otherwise
+   * @memberof BirthdayManager
+   */
   public async unsetBirthday(memberId: string): Promise<boolean> {
     return await db
       .update(members)

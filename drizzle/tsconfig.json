@@ -1,0 +1,4 @@
+{
+  "include": ["../src/global.d.ts"],
+  "files": ["drizzle.config.ts"]
+}

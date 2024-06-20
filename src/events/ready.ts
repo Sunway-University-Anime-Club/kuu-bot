@@ -28,6 +28,9 @@ export default class extends EventListener<'ready'> {
       });
     });
 
+    // Start checking for birthdays every midnight
+    this.client.birthdayManager.cron.start();
+
     // Notify success for discord bot login
     console.log(`Logged in as ${client.user.username}`);
   }

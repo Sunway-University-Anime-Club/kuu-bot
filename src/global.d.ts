@@ -19,6 +19,7 @@ declare global {
       EMAIL_PORT: string;
       EMAIL_USER: string;
       EMAIL_PASSWORD: string;
+      DATABASE_URI: string;
     }
   }
 }

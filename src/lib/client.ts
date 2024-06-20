@@ -3,6 +3,7 @@ import glob from 'glob';
 import path from 'path';
 import { Command, LegacyCommand, SlashCommand } from './abstract/commands';
 import { EventListener } from './abstract/events';
+import { BirthdayManager } from './birthday-manager';
 
 export type KuuModules = 'commands' | 'events';
 
@@ -13,7 +14,9 @@ export type CommandModule = {
 };
 
 export class KuuClient extends Client {
-  private readonly root: string = __dirname;
+  private readonly root: string = path.join(__dirname, '..');
+  private readonly _birthdayManager: BirthdayManager;
+
   private readonly commands: CommandModule = {
     LegacyCommand: new Collection(),
     SlashCommand: new Collection()
@@ -21,6 +24,7 @@ export class KuuClient extends Client {
 
   constructor(clientOptions: ClientOptions) {
     super(clientOptions);
+    this._birthdayManager = new BirthdayManager(this);
 
     this.loadModule('events').catch(() =>
       console.error('Something went wrong loading events.')
@@ -37,7 +41,7 @@ export class KuuClient extends Client {
    */
   async loadModule(module: KuuModules) {
     // Create path for events
-    const folderPath = path.join(this.root, '..', module);
+    const folderPath = path.join(this.root, module);
 
     // Use glob to get a list of files that ends with .js or .ts in the provided folder path
     // This includes js and ts files inside folders within the the folder path.
@@ -106,5 +110,35 @@ export class KuuClient extends Client {
    */
   get slashCommands() {
     return this.commands.SlashCommand;
+  }
+
+  /**
+   * Getter for birthday manager.
+   *
+   * @readonly
+   * @memberof KuuClient
+   */
+  get birthdayManager() {
+    return this._birthdayManager;
+  }
+
+  /**
+   * Getter for root directory.
+   *
+   * @readonly
+   * @memberof KuuClient
+   */
+  get rootDir() {
+    return this.root;
+  }
+
+  /**
+   * Getter for messages directory.
+   *
+   * @readonly
+   * @memberof KuuClient
+   */
+  get messagesDir() {
+    return path.join(this.rootDir, '..', 'messages');
   }
 }

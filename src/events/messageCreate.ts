@@ -8,7 +8,6 @@ import {
   TextChannel
 } from 'discord.js';
 import { google } from 'googleapis';
-import { createTransport } from 'nodemailer';
 import config from '../config';
 import { EventListener } from '../lib/abstract/events';
 import { VerificationButtons } from '../lib/utils';
@@ -21,20 +20,6 @@ const googleClient = new google.auth.JWT(
   process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
   ['https://www.googleapis.com/auth/spreadsheets.readonly']
 );
-
-// Create the email client for sending email
-const emailClient = createTransport({
-  host: process.env.EMAIL_HOST,
-  port: Number(process.env.EMAIL_PORT),
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
-  },
-  secure: false,
-  tls: {
-    rejectUnauthorized: false
-  }
-});
 
 const SPREADSHEET_URL = `https://docs.google.com/spreadsheets/d/${process.env.REGISTRATION_FORM_ID}`;
 
@@ -117,14 +102,6 @@ export default class extends EventListener<'messageCreate'> {
       const paymentProof = row[3] || manualCheckUrl;
       const favHusWaifu = row[row.length - 1] || manualCheckUrl;
 
-      // Send email as reminder, send embed to verification channel and exit the loop
-      await emailClient.sendMail({
-        to: `${process.env.EMAIL_USER}`,
-        from: `Spimy - <${process.env.EMAIL_USER}>`,
-        subject: 'SUAC Kuu-Bot: New Discord Member',
-        text: `A new member, ${username} , has joined the Discord server. Proof of payment: ${paymentProof}.`
-      });
-
       // Add found fields to the embed
       embed.addFields(
         { name: 'Proof of Payment', value: paymentProof },
@@ -147,30 +124,6 @@ export default class extends EventListener<'messageCreate'> {
       const displayName = message.member?.user.displayName;
       const userId = message.member?.id;
 
-      await emailClient.sendMail({
-        to: `${process.env.EMAIL_USER}`,
-        from: `Spimy - <${process.env.EMAIL_USER}>`,
-        subject: 'SUAC Kuu-Bot: Discord Member with no Registration',
-        html: `
-        <p>
-          A new user who has joined the Discord server without registering through the Google Forms has been detected.
-          </br>
-          A manual check is required to ensure this was not a mistake.
-        
-          </br>
-          </br>
-
-          <b>Discord User Information</b>
-          </br>
-          Username: ${username}
-          </br>
-          Display Name: ${displayName}
-          </br>
-          User ID: ${userId}
-        </p>
-      `
-      });
-
       // Add additional information to the embed
       embed.addFields(
         {
@@ -184,6 +137,7 @@ export default class extends EventListener<'messageCreate'> {
 
       // Send the embed with the buttons to the verification channel
       await verificationChannel.send({
+        content: '@officialspimy',
         embeds: [embed],
         components: [actionRow]
       });

@@ -1,7 +1,7 @@
 import { boolean, date, pgTable, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 
-export const members = pgTable(
-  'members',
+export const discordMembers = pgTable(
+  'discord_members',
   {
     discordId: varchar('discord_id', { length: 18 }).primaryKey(),
     birthday: date('birthday', { mode: 'date' }),

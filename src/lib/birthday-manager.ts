@@ -5,7 +5,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import config from '../config';
 import { db } from '../database/drizzle';
-import { members } from '../database/schemas';
+import { discordMembers } from '../database/schemas';
 import { KuuClient } from './client';
 
 export class BirthdayManager {
@@ -33,7 +33,7 @@ export class BirthdayManager {
     hasBirthYear: boolean
   ): Promise<boolean> {
     return await db
-      .insert(members)
+      .insert(discordMembers)
       .values({
         discordId: memberId,
         birthday,
@@ -42,7 +42,7 @@ export class BirthdayManager {
       // It is possible that the member is already in the database so we
       // need to update the record instead of inserting
       .onConflictDoUpdate({
-        target: members.discordId,
+        target: discordMembers.discordId,
         set: { birthday }
       })
       .then(() => true)
@@ -58,9 +58,9 @@ export class BirthdayManager {
    */
   public async unsetBirthday(memberId: string): Promise<boolean> {
     return await db
-      .update(members)
+      .update(discordMembers)
       .set({ birthday: null, hasBirthYear: false })
-      .where(eq(members.discordId, memberId))
+      .where(eq(discordMembers.discordId, memberId))
       .then(() => true)
       .catch(() => false);
   }
@@ -75,8 +75,8 @@ export class BirthdayManager {
    * @memberof BirthdayManager
    */
   public async hasSetBirthday(memberId: string): Promise<boolean> {
-    const record = await db.query.members.findFirst({
-      where: eq(members.discordId, memberId)
+    const record = await db.query.discordMembers.findFirst({
+      where: eq(discordMembers.discordId, memberId)
     });
 
     // If the member is in the database and their birthday is not null then
@@ -106,12 +106,12 @@ export class BirthdayManager {
     // prettier-ignore
     const results =  await db
       .select({
-        discordId: members.discordId,
-        birthday: members.birthday,
-        hasBirthYear: members.hasBirthYear
+        discordId: discordMembers.discordId,
+        birthday: discordMembers.birthday,
+        hasBirthYear: discordMembers.hasBirthYear
       })
-      .from(members)
-      .where(isNotNull(members.birthday))
+      .from(discordMembers)
+      .where(isNotNull(discordMembers.birthday))
 
     const sortedResults = results.sort((a, b) => {
       return (
@@ -228,7 +228,10 @@ export class BirthdayManager {
      */
     if (role) role.members.forEach((member) => member.roles.remove(role));
 
-    const results = await db.select().from(members).where(isNotNull(members.birthday));
+    const results = await db
+      .select()
+      .from(discordMembers)
+      .where(isNotNull(discordMembers.birthday));
     results.forEach(async (result) => {
       const now = this.getNow();
       const nowYear = now.getFullYear();

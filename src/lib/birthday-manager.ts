@@ -14,7 +14,7 @@ export class BirthdayManager {
   constructor(private client: KuuClient) {
     this.cronjob = CronJob.from({
       cronTime: '0 0 * * *', // every 12 am (midnight)
-      onTick: () => this.announceBirthday(),
+      onTick: () => this.celebrateBirthday(),
       timeZone: 'Asia/Kuala_Lumpur'
     });
   }
@@ -208,15 +208,25 @@ export class BirthdayManager {
    * @private
    * @memberof BirthdayManager
    */
-  private async announceBirthday() {
+  private async celebrateBirthday() {
     const guild = await this.client.guilds.fetch(config.guildId).catch(() => null);
-    if (!guild) return console.error('[Birthday] Could not find guild.');
+    if (!guild) return console.warn('[Birthday] Could not find guild.');
 
     const channel = await guild.channels
       .fetch(config.channelIds.birthday)
       .then((c) => c as TextChannel)
       .catch(() => null);
-    if (!channel) return console.error('[Birthday] Could not find channel.');
+    if (!channel) return console.warn('[Birthday] Could not find channel.');
+
+    const role = await guild.roles.fetch(config.roleIds.birthday).catch(() => null);
+    if (!role) console.warn('[Birthday] Could not find birthday role.');
+
+    /**
+     * Firstly remove birthday role from everyone who has it.
+     * We can remove them here because if someone has the role, it means
+     * it has been at least 24 hours since they had it as this runs only once every 24 hours.
+     */
+    if (role) role.members.forEach((member) => member.roles.remove(role));
 
     const results = await db.select().from(members).where(isNotNull(members.birthday));
     results.forEach(async (result) => {
@@ -237,6 +247,8 @@ export class BirthdayManager {
           path.join(this.client.messagesDir, 'birthday.md'),
           { encoding: 'utf-8' }
         );
+
+        if (role) await member.roles.add(role);
 
         await channel
           .send({

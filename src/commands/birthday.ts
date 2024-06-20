@@ -1,4 +1,5 @@
 import {
+  APIEmbedField,
   ApplicationCommandOptionType,
   ChatInputCommandInteraction,
   EmbedBuilder
@@ -44,12 +45,15 @@ export default class extends Command<SlashCommand> {
               type: ApplicationCommandOptionType.Mentionable
             }
           ]
+        },
+        {
+          name: 'upcoming',
+          description: 'List of the next upcoming 10 birthdays on the server.',
+          type: ApplicationCommandOptionType.Subcommand
         }
       ]
     });
   }
-
-  private readonly embed = new EmbedBuilder();
 
   async execute(interaction: ChatInputCommandInteraction<'cached'>): Promise<boolean> {
     const subcommand = interaction.options.getSubcommand();
@@ -58,18 +62,20 @@ export default class extends Command<SlashCommand> {
     switch (subcommand) {
       case 'set': return await this.setBirthday(interaction);
       case 'unset': return await this.unsetBirthday(interaction);
+      case 'upcoming': return await this.upcomingBirthdays(interaction);
     }
 
     return true;
   }
 
-  async setBirthday(
+  private async setBirthday(
     interaction: ChatInputCommandInteraction<'cached'>
   ): Promise<boolean> {
     const dateString = interaction.options.getString('date', true);
     const birthday = this.getDate(dateString);
     if (!birthday) return false;
 
+    const embed = new EmbedBuilder();
     const hasBirthYear = dateString.split('-').length === 3;
 
     let member = interaction.options.getMember('member');
@@ -82,12 +88,12 @@ export default class extends Command<SlashCommand> {
       hasBirthYear
     );
     if (!success) {
-      this.embed
+      embed
         .setColor('Red')
         .setDescription('Yo dazo! Something went wrong and could not set birthday.');
 
       await interaction.reply({
-        embeds: [this.embed],
+        embeds: [embed],
         ephemeral: true
       });
 
@@ -99,21 +105,21 @@ export default class extends Command<SlashCommand> {
       .then((e) => e.toString())
       .catch(() => ':thumbsup:');
 
-    this.embed
+    embed
       .setColor('Orange')
       .setDescription(
         `Thank you for telling me ${referrer} birthday dazo! I have now remebered it! ${thumbsUp}`
       );
 
     await interaction.reply({
-      embeds: [this.embed],
+      embeds: [embed],
       ephemeral: false
     });
 
     return true;
   }
 
-  async unsetBirthday(
+  private async unsetBirthday(
     interaction: ChatInputCommandInteraction<'cached'>
   ): Promise<boolean> {
     let member = interaction.options.getMember('member');
@@ -130,6 +136,8 @@ export default class extends Command<SlashCommand> {
       command = '`/birthday set <date>`';
     }
 
+    const embed = new EmbedBuilder();
+
     if (!(await this.client.birthdayManager.hasSetBirthday(member.id))) {
       const breakdown = await interaction.guild.emojis
         .fetch(config.emojiIds.kuuchan_breakdown)
@@ -141,7 +149,7 @@ export default class extends Command<SlashCommand> {
         .then((e) => e.toString())
         .catch(() => ':heart:');
 
-      this.embed
+      embed
         .setColor('Red')
         .setDescription(
           [
@@ -152,7 +160,7 @@ export default class extends Command<SlashCommand> {
         );
 
       await interaction.reply({
-        embeds: [this.embed],
+        embeds: [embed],
         ephemeral: true
       });
 
@@ -161,12 +169,12 @@ export default class extends Command<SlashCommand> {
 
     const success = this.client.birthdayManager.unsetBirthday(member.id);
     if (!success) {
-      this.embed
+      embed
         .setColor('Red')
         .setDescription('Yo dazo! Something went wrong and could not unset birthday.');
 
       await interaction.reply({
-        embeds: [this.embed],
+        embeds: [embed],
         ephemeral: true
       });
 
@@ -178,7 +186,7 @@ export default class extends Command<SlashCommand> {
       .then((e) => e.toString())
       .catch(() => ':thumbsup:');
 
-    this.embed
+    embed
       .setColor('Orange')
       .setDescription(
         [
@@ -188,7 +196,48 @@ export default class extends Command<SlashCommand> {
       );
 
     await interaction.reply({
-      embeds: [this.embed],
+      embeds: [embed],
+      ephemeral: false
+    });
+
+    return true;
+  }
+
+  private async upcomingBirthdays(
+    interaction: ChatInputCommandInteraction<'cached'>
+  ): Promise<boolean> {
+    const birthdays = await this.client.birthdayManager.getUpcomingBirthdays();
+
+    const fields: APIEmbedField[] = await Promise.all(
+      birthdays.map(async (result) => {
+        const member = await interaction.guild.members
+          .fetch(result.discordId)
+          .catch(() => 'Unknown Member');
+
+        const age = result.hasBirthYear
+          ? `(${this.client.birthdayManager.getAge(result.birthday!)})`
+          : '';
+
+        const name = this.client.birthdayManager.formatUpcomingBirthday(result.birthday!);
+        const value = `${member} ${age}`;
+
+        return { name, value };
+      })
+    );
+
+    const embed = new EmbedBuilder()
+      .setColor('Orange')
+      .setTitle('Upcoming Birthdays')
+      .setFields(
+        fields.sort((a, b) => {
+          const aa = a.name.split(' ');
+          const bb = b.name.split(' ');
+          return parseInt(aa[2]) - parseInt(bb[2]) || parseInt(aa[0]) - parseInt(bb[0]);
+        })
+      );
+
+    interaction.reply({
+      embeds: [embed],
       ephemeral: false
     });
 

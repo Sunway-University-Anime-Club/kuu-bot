@@ -59,7 +59,7 @@ export class BirthdayManager {
   public async unsetBirthday(memberId: string): Promise<boolean> {
     return await db
       .update(members)
-      .set({ birthday: null })
+      .set({ birthday: null, hasBirthYear: false })
       .where(eq(members.discordId, memberId))
       .then(() => true)
       .catch(() => false);
@@ -85,6 +85,123 @@ export class BirthdayManager {
   }
 
   /**
+   * Get the next 10 upcoming birthdays, including 'today'
+   *
+   * @return {*} the Discord ID of the members and their birthdays (assert as never null)
+   * @memberof BirthdayManager
+   */
+  public async getUpcomingBirthdays() {
+    const MAX_NUM_UPCOMING = 10;
+    const now = this.getNow();
+
+    /**
+     * 1. Fetch every members whose birthday is >= to the current month
+     * 2. If the birthday month = current month, then the date >= the current date
+     * 3. Count the amount of records fetched
+     * 4. If the amount fetched is >= 10, then that's the data we need to return
+     * 5. If the amount fetched is < 10, then we allow months that are below the current month to be fetched
+     *    as well and will thus be considered as the following year instead of the current year
+     */
+
+    // prettier-ignore
+    const results =  await db
+      .select({
+        discordId: members.discordId,
+        birthday: members.birthday,
+        hasBirthYear: members.hasBirthYear
+      })
+      .from(members)
+      .where(isNotNull(members.birthday))
+
+    const sortedResults = results.sort((a, b) => {
+      return (
+        a.birthday!.getMonth() - b.birthday!.getMonth() ||
+        a.birthday!.getDate() - b.birthday!.getDate()
+      );
+    });
+
+    const fromAfterCurMonth = sortedResults.filter((result) => {
+      const afterCurMonth = result.birthday!.getMonth() > now.getMonth();
+      const withinCurMonth =
+        result.birthday!.getMonth() === now.getMonth() &&
+        result.birthday!.getDate() >= now.getDate();
+      return afterCurMonth || withinCurMonth;
+    });
+
+    if (fromAfterCurMonth.length >= MAX_NUM_UPCOMING)
+      return fromAfterCurMonth.slice(0, MAX_NUM_UPCOMING);
+
+    const finalResults = [...fromAfterCurMonth];
+    for (const result of sortedResults) {
+      if (!!finalResults.find((r) => r.discordId === result.discordId)) continue;
+      finalResults.push(result);
+      if (finalResults.length === MAX_NUM_UPCOMING) break;
+    }
+
+    return finalResults.sort((a, b) => {
+      return (
+        a.birthday!.getMonth() - b.birthday!.getMonth() ||
+        a.birthday!.getDate() - b.birthday!.getDate()
+      );
+    });
+  }
+
+  public getAge(birthday: Date): number {
+    return this.getUpcomingBirthdayYear(birthday) - birthday.getFullYear();
+  }
+
+  /**
+   * Format the upcoming birthday into a readable format: date month year.
+   * "(Today)" will be appended if the birthday date matches the current date.
+   *
+   * * Examples:
+   * - 21 June 2024 (Today)
+   * - 30 January 2025
+   *
+   * @param {Date} birthday - the birthday date object
+   * @return {*}  {string} formatted date
+   * @memberof BirthdayManager
+   */
+  public formatUpcomingBirthday(birthday: Date): string {
+    const now = this.getNow();
+
+    const date = `${birthday.getDate()}`.padStart(2, '0');
+    const month = birthday.toLocaleString('default', { month: 'long' });
+    const year = this.getUpcomingBirthdayYear(birthday);
+
+    const isToday =
+      birthday.getMonth() === now.getMonth() && birthday.getDate() === now.getDate();
+
+    return `${date} ${month} ${year} ${isToday ? '(Today)' : ''}`;
+  }
+
+  private getNow(): Date {
+    const date = new Date();
+    return new Date(date.getTime() - date.getTimezoneOffset());
+  }
+
+  /**
+   * If the month is < the current month or
+   * if the month is = the current month and the date is < the current date,
+   * then it means that the upcoming birth year should be next year.
+   * 
+   * * Example:
+   * It is currently 21 June 2024. The birthday is 10 June.
+   * 10 June has already passed for 2024. Therefore the next birthday is the following year.
+    
+  * @param birthday 
+  * @returns the year of the upcoming birthday
+  */
+  private getUpcomingBirthdayYear(birthday: Date): number {
+    const now = this.getNow();
+
+    return birthday.getMonth() < now.getMonth() ||
+      (birthday.getMonth() === now.getMonth() && birthday.getDate() < now.getDate())
+      ? now.getFullYear() + 1
+      : now.getFullYear();
+  }
+
+  /**
    * Executed by the cronjob. Announce the birthday of all members if match the current date
    * in the database.
    *
@@ -103,9 +220,7 @@ export class BirthdayManager {
 
     const results = await db.select().from(members).where(isNotNull(members.birthday));
     results.forEach(async (result) => {
-      const date = new Date();
-
-      const now = new Date(date.getTime() - date.getTimezoneOffset());
+      const now = this.getNow();
       const nowYear = now.getFullYear();
       const nowMonth = now.getMonth();
       const nowDate = now.getDate();

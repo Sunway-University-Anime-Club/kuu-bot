@@ -4,12 +4,20 @@ export default {
   roleIds: {
     intro: '',
     freshie: '',
-    member: ''
+    member: '',
+    birthday: ''
   },
 
   channelIds: {
     intro: '',
-    verification: ''
+    verification: '',
+    birthday: ''
+  },
+
+  emojiIds: {
+    kuuchan_breakdown: '',
+    irys_heart: '',
+    satania_thumbs_up: ''
   },
 
   kickTimeout: 60000,

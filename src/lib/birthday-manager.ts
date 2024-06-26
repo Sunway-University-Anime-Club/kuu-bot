@@ -162,7 +162,10 @@ export class BirthdayManager {
    * @return {*}  {string} formatted date
    * @memberof BirthdayManager
    */
-  public formatUpcomingBirthday(birthday: Date): string {
+  public formatUpcomingBirthday(birthday: Date): {
+    formatted: string;
+    nextBirthday: Date;
+  } {
     const now = this.getNow();
 
     const date = `${birthday.getDate()}`.padStart(2, '0');
@@ -172,7 +175,10 @@ export class BirthdayManager {
     const isToday =
       birthday.getMonth() === now.getMonth() && birthday.getDate() === now.getDate();
 
-    return `${date} ${month} ${year} ${isToday ? '(Today)' : ''}`;
+    return {
+      formatted: `${date} ${month} ${year} ${isToday ? '(Today)' : ''}`,
+      nextBirthday: new Date(`${year}-${month}-${date}`)
+    };
   }
 
   private getNow(): Date {

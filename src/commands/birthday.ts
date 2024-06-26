@@ -238,7 +238,7 @@ export default class extends Command<SlashCommand> {
       .setColor('Orange')
       .setTitle('Upcoming Birthdays')
       .setFields(
-        fields.sort((a, b) => a.date - b.date || a.month - b.month || a.year - b.year)
+        fields.sort((a, b) => a.year - b.year || a.month - b.month || a.date - b.date)
       );
 
     interaction.reply({

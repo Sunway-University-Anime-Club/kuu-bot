@@ -208,32 +208,37 @@ export default class extends Command<SlashCommand> {
   ): Promise<boolean> {
     const birthdays = await this.client.birthdayManager.getUpcomingBirthdays();
 
-    const fields: APIEmbedField[] = await Promise.all(
-      birthdays.map(async (result) => {
-        const member = await interaction.guild.members
-          .fetch(result.discordId)
-          .catch(() => 'Unknown Member');
+    const fields: (APIEmbedField & { date: number; month: number; year: number })[] =
+      await Promise.all(
+        birthdays.map(async (result) => {
+          const member = await interaction.guild.members
+            .fetch(result.discordId)
+            .catch(() => 'Unknown Member');
 
-        const age = result.hasBirthYear
-          ? `(${this.client.birthdayManager.getAge(result.birthday!)})`
-          : '';
+          const age = result.hasBirthYear
+            ? `(${this.client.birthdayManager.getAge(result.birthday!)})`
+            : '';
 
-        const name = this.client.birthdayManager.formatUpcomingBirthday(result.birthday!);
-        const value = `${member} ${age}`;
+          const name = this.client.birthdayManager.formatUpcomingBirthday(
+            result.birthday!
+          );
+          const value = `${member} ${age}`;
 
-        return { name, value };
-      })
-    );
+          return {
+            name,
+            value,
+            date: result.birthday!.getDate(),
+            month: result.birthday!.getMonth(),
+            year: result.birthday!.getFullYear()
+          };
+        })
+      );
 
     const embed = new EmbedBuilder()
       .setColor('Orange')
       .setTitle('Upcoming Birthdays')
       .setFields(
-        fields.sort((a, b) => {
-          const aa = a.name.split(' ');
-          const bb = b.name.split(' ');
-          return parseInt(aa[2]) - parseInt(bb[2]) || parseInt(aa[0]) - parseInt(bb[0]);
-        })
+        fields.sort((a, b) => a.date - b.date || a.month - b.month || a.year - b.year)
       );
 
     interaction.reply({

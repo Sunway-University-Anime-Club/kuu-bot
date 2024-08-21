@@ -137,7 +137,7 @@ export default class extends EventListener<'messageCreate'> {
 
       // Send the embed with the buttons to the verification channel
       await verificationChannel.send({
-        content: '@officialspimy',
+        content: `<@&${config.roleIds.itManager}>`,
         embeds: [embed],
         components: [actionRow]
       });

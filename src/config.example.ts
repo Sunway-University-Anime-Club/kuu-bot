@@ -5,7 +5,8 @@ export default {
     intro: '',
     freshie: '',
     member: '',
-    birthday: ''
+    birthday: '',
+    itManager: ''
   },
 
   channelIds: {

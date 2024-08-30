@@ -91,6 +91,7 @@ export default class extends EventListener<'messageCreate'> {
     );
 
     // Check if username response match new discord user
+    let foundUser = undefined;
     const username = message.member?.user.username;
 
     /**
@@ -104,42 +105,36 @@ export default class extends EventListener<'messageCreate'> {
     for (const row of rows) {
       // If match is not found then skip to the next iteration
       if (row[0] !== username) continue;
+      foundUser = row;
+    }
 
+    if (typeof foundUser !== 'undefined') {
       const manualCheckUrl = `Not Found and require manual check at the Spreadsheet at ${SPREADSHEET_URL}`;
-      const paymentProof = row[3] || manualCheckUrl;
-      const favHusWaifu = row[row.length - 1] || manualCheckUrl;
+      const paymentProof = foundUser[3] || manualCheckUrl;
+      const favHusWaifu = foundUser[foundUser.length - 1] || manualCheckUrl;
 
       // Add found fields to the embed
       embed.addFields(
         { name: 'Proof of Payment', value: paymentProof },
         { name: 'Favourite Husbando/Waifu', value: favHusWaifu }
       );
+    } else {
+      // If no match was found in the spreadsheet, notify to do a manual check
+      // This is because user might have not registered via the form but found a way into the server
+      const displayName = message.member?.user.displayName;
+      const userId = message.member?.id;
 
-      // Send the embed with the buttons to the verification channel
-      await verificationChannel.send({
-        content: `<@&${config.roleIds.itManager}>`,
-        embeds: [embed],
-        components: [actionRow]
-      });
-
-      return;
+      // Add additional information to the embed
+      embed.addFields(
+        {
+          name: 'Issue',
+          value: `User not found in [Spreadsheet](${SPREADSHEET_URL}). Manual check required.`
+        },
+        { name: 'Username', value: `${username}` },
+        { name: 'Display Name', value: `${displayName}` },
+        { name: 'User ID', value: `${userId}` }
+      );
     }
-
-    // If no match was found in the spreadsheet, notify to do a manual check
-    // This is because user might have not registered via the form but found a way into the server
-    const displayName = message.member?.user.displayName;
-    const userId = message.member?.id;
-
-    // Add additional information to the embed
-    embed.addFields(
-      {
-        name: 'Issue',
-        value: `User not found in [Spreadsheet](${SPREADSHEET_URL}). Manual check required.`
-      },
-      { name: 'Username', value: `${username}` },
-      { name: 'Display Name', value: `${displayName}` },
-      { name: 'User ID', value: `${userId}` }
-    );
 
     // Send the embed with the buttons to the verification channel
     await verificationChannel.send({

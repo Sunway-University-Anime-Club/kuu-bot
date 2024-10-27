@@ -13,7 +13,7 @@ export class BirthdayManager {
 
   constructor(private client: KuuClient) {
     this.cronjob = CronJob.from({
-      cronTime: '0 0 * * *', // every 12 am (midnight)
+      cronTime: '59 0 0 * * *', // every 12.00 am (midnight)
       onTick: () => this.celebrateBirthday(),
       timeZone: 'Asia/Kuala_Lumpur'
     });
@@ -239,14 +239,14 @@ export class BirthdayManager {
       .from(discordMembers)
       .where(isNotNull(discordMembers.birthday));
     results.forEach(async (result) => {
-      const now = this.getNow();
+      const now = new Date();
       const nowYear = now.getFullYear();
-      const nowMonth = now.getMonth();
-      const nowDate = now.getDate();
+      const nowMonth = now.getUTCMonth();
+      const nowDate = now.getUTCDate();
 
       const birthdayYear = result.birthday!.getFullYear();
-      const birthdayMonth = result.birthday!.getMonth();
-      const birthdayDate = result.birthday!.getDate();
+      const birthdayMonth = result.birthday!.getUTCMonth();
+      const birthdayDate = result.birthday!.getUTCDate();
 
       if (nowMonth === birthdayMonth && nowDate === birthdayDate) {
         const member = await guild.members.fetch(result.discordId).catch(() => null);

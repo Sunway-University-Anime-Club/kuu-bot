@@ -246,7 +246,7 @@ export class BirthdayManager {
 
       const birthdayYear = result.birthday!.getFullYear();
       const birthdayMonth = result.birthday!.getUTCMonth();
-      const birthdayDate = result.birthday!.getUTCDate();
+      const birthdayDate = result.birthday!.getUTCDate() - 1;
 
       if (nowMonth === birthdayMonth && nowDate === birthdayDate) {
         const member = await guild.members.fetch(result.discordId).catch(() => null);

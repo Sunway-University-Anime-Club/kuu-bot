@@ -7,6 +7,7 @@ import config from '../config';
 import { db } from '../database/drizzle';
 import { discordMembers } from '../database/schemas';
 import { KuuClient } from './client';
+import { getNumberWithOrdinal } from './utils';
 
 export class BirthdayManager {
   private readonly cronjob: CronJob;
@@ -265,7 +266,7 @@ export class BirthdayManager {
             content: birthdayMsg
               .replace(
                 /{age}/gm,
-                result.hasBirthYear ? `${nowYear - birthdayYear}th` : ''
+                result.hasBirthYear ? getNumberWithOrdinal(nowYear - birthdayYear) : ''
               )
               .replace(/{mention}/gm, `${member}`)
           })

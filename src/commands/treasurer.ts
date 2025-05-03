@@ -188,13 +188,14 @@ export default class extends Command<SlashCommand> {
         },
         {
           name: 'reset',
-          description: 'Reset the game for the group(s)',
+          description: 'Reset the game for the group',
           type: ApplicationCommandOptionType.Subcommand,
           options: [
             {
               name: 'group',
               description: 'The group to reset the game for',
               type: ApplicationCommandOptionType.String,
+              required: true,
               choices: [
                 {
                   name: 'Green',

@@ -187,7 +187,7 @@ export default class extends Command<SlashCommand> {
     let group: GroupName | undefined;
 
     try {
-      await interaction.deferReply({ ephemeral: true }).catch(console.error);
+      await interaction.deferReply({ ephemeral: true });
 
       // Check if the interaction is in the correct channel and is a text channel
       if (interaction.channelId !== config.channelIds.event) return false;

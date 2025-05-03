@@ -132,10 +132,16 @@ export default class extends EventListener<'interactionCreate'> {
       console.error(error);
       embed.setDescription('Something went wrong while trying to execute this command.');
 
-      return await interaction.reply({
-        embeds: [embed],
-        ephemeral: true
-      });
+      if (interaction.deferred) {
+        return await interaction.editReply({
+          embeds: [embed]
+        });
+      } else {
+        return await interaction.reply({
+          embeds: [embed],
+          ephemeral: true
+        });
+      }
     }
   }
 }

@@ -18,7 +18,11 @@ export default class extends EventListener<'interactionCreate'> {
   async execute(interaction: Interaction): Promise<any> {
     // Handle command interactions
     if (interaction.isChatInputCommand()) {
-      return this.handleCommandInteraction(interaction);
+      try {
+        return this.handleCommandInteraction(interaction);
+      } catch (err) {
+        return console.error(err);
+      }
     }
 
     // Handle button interactions
@@ -28,6 +32,8 @@ export default class extends EventListener<'interactionCreate'> {
   }
 
   async handleButtonInteraction(interaction: ButtonInteraction) {
+    if (interaction.channelId !== config.channelIds.verification) return;
+
     // Get button type
     const [btnType, userId] = interaction.customId.split('-');
 

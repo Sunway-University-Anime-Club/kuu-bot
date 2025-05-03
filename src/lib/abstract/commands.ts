@@ -31,6 +31,7 @@ export interface LegacyCommand {
     usage?: CommandUsage[];
     permissions?: PermissionResolvable[];
     category?: string;
+    disabled?: boolean;
   };
   key: 'LegacyCommand';
 }
@@ -42,7 +43,7 @@ export interface LegacyCommand {
  * @interface SlashCommand
  */
 export interface SlashCommand {
-  info: ChatInputApplicationCommandData;
+  info: ChatInputApplicationCommandData & { disabled?: boolean };
   key: 'SlashCommand';
 }
 

@@ -77,6 +77,7 @@ export class KuuClient extends Client {
         // Register commands
         if (defaultModule.prototype instanceof Command) {
           const command: Command<LegacyCommand | SlashCommand> = new defaultModule(this);
+          if (command.info.disabled) return (numSkipped += 1);
 
           if (command.isLegacy()) {
             return this.commands.LegacyCommand.set(command.info.name, command);

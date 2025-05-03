@@ -141,4 +141,8 @@ export class KuuClient extends Client {
   get messagesDir() {
     return path.join(this.rootDir, '..', 'messages');
   }
+
+  get eventsDir() {
+    return path.join(this.rootDir, '..', 'events');
+  }
 }

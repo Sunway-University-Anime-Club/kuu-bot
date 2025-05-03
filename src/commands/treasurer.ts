@@ -184,34 +184,44 @@ export default class extends Command<SlashCommand> {
   }
 
   async execute(interaction: ChatInputCommandInteraction<'cached'>): Promise<boolean> {
-    // Check if the interaction is in the correct channel and is a text channel
-    if (interaction.channelId !== config.channelIds.event) return false;
-    if (interaction.channel?.type !== ChannelType.GuildText) return false;
+    let group: GroupName | undefined;
 
-    // Get the group from the interaction options
-    const group = interaction.options.getString('group', true) as GroupName;
+    try {
+      await interaction.deferReply({ ephemeral: true });
 
-    // Check if the member is already in a thread
-    if (this.startedGroups.has(group)) return false;
+      // Check if the interaction is in the correct channel and is a text channel
+      if (interaction.channelId !== config.channelIds.event) return false;
+      if (interaction.channel?.type !== ChannelType.GuildText) return false;
 
-    // Set the thread to be private and only visible to the member who started it
-    const thread = await interaction.channel.threads.create({
-      name: `${group}'s game`,
-      autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
-      type: ChannelType.PrivateThread,
-      invitable: false
-    });
-    await thread.members.add(interaction.user.id).catch(console.error);
+      // Get the group from the interaction options
+      group = interaction.options.getString('group', true) as GroupName;
 
-    // Send a message to the thread to notify the user that the game has started
-    await this.handleGame(interaction.user, group, thread).catch(console.error);
-    await interaction.reply({
-      content: `Your game has started in ${thread}.`,
-      ephemeral: true
-    });
+      // Check if the member is already in a thread
+      if (this.startedGroups.has(group)) return false;
 
-    // Add the member to the started members map with 0 correct answers
-    this.startedGroups.set(group, 0);
+      // Set the thread to be private and only visible to the member who started it
+      const thread = await interaction.channel.threads.create({
+        name: `${group}'s game`,
+        autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
+        type: ChannelType.PrivateThread,
+        invitable: false
+      });
+      await thread.members.add(interaction.user.id).catch(console.error);
+
+      // Send a message to the thread to notify the user that the game has started
+      await this.handleGame(interaction.user, group, thread).catch(console.error);
+      await interaction.editReply({
+        content: `Your game has started in ${thread}.`
+      });
+
+      // Add the member to the started members map with 0 correct answers
+      this.startedGroups.set(group, 0);
+    } catch (err) {
+      if (group) {
+        // If the game failed, remove the member from the started groups
+        this.startedGroups.delete(group);
+      }
+    }
     return true;
   }
 

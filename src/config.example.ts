@@ -12,7 +12,8 @@ export default {
   channelIds: {
     intro: '',
     verification: '',
-    birthday: ''
+    birthday: '',
+    event: '' // temporary channel for "That Time I Got Reincarnated as a SUAC Committee" event
   },
 
   emojiIds: {

@@ -156,26 +156,63 @@ export default class extends Command<SlashCommand> {
       description: 'Start a treasurer game for the event',
       options: [
         {
-          name: 'group',
-          description: 'The group to start the game for',
-          type: ApplicationCommandOptionType.String,
-          required: true,
-          choices: [
+          name: 'start',
+          description: 'Start the game for a group',
+          type: ApplicationCommandOptionType.Subcommand,
+          options: [
             {
-              name: 'Green',
-              value: 'green'
-            },
+              name: 'group',
+              description: 'The group to start the game for',
+              type: ApplicationCommandOptionType.String,
+              required: true,
+              choices: [
+                {
+                  name: 'Green',
+                  value: 'green'
+                },
+                {
+                  name: 'Red',
+                  value: 'red'
+                },
+                {
+                  name: 'Blue',
+                  value: 'blue'
+                },
+                {
+                  name: 'Light Purple',
+                  value: 'light-purple'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          name: 'reset',
+          description: 'Reset the game for the group(s)',
+          type: ApplicationCommandOptionType.Subcommand,
+          options: [
             {
-              name: 'Red',
-              value: 'red'
-            },
-            {
-              name: 'Blue',
-              value: 'blue'
-            },
-            {
-              name: 'Light Purple',
-              value: 'light-purple'
+              name: 'group',
+              description: 'The group to reset the game for',
+              type: ApplicationCommandOptionType.String,
+              choices: [
+                {
+                  name: 'Green',
+                  value: 'green'
+                },
+                {
+                  name: 'Red',
+                  value: 'red'
+                },
+                {
+                  name: 'Blue',
+                  value: 'blue'
+                },
+                {
+                  name: 'Light Purple',
+                  value: 'light-purple'
+                }
+              ]
             }
           ]
         }
@@ -184,44 +221,59 @@ export default class extends Command<SlashCommand> {
   }
 
   async execute(interaction: ChatInputCommandInteraction<'cached'>): Promise<boolean> {
-    let group: GroupName | undefined;
+    await interaction.deferReply({ ephemeral: true });
 
-    try {
-      await interaction.deferReply({ ephemeral: true });
+    // Check if the interaction is in the correct channel and is a text channel
+    if (interaction.channelId !== config.channelIds.event) return false;
+    if (interaction.channel?.type !== ChannelType.GuildText) return false;
 
-      // Check if the interaction is in the correct channel and is a text channel
-      if (interaction.channelId !== config.channelIds.event) return false;
-      if (interaction.channel?.type !== ChannelType.GuildText) return false;
+    // Get the subcommand name
+    const subcommand = interaction.options.getSubcommand(true) as 'start' | 'reset';
 
-      // Get the group from the interaction options
-      group = interaction.options.getString('group', true) as GroupName;
+    // Get the group from the interaction options
+    const group = interaction.options.getString('group', true) as GroupName;
+    const threadName = `${group}'s game`;
 
-      // Check if the member is already in a thread
-      if (this.startedGroups.has(group)) return false;
-
-      // Set the thread to be private and only visible to the member who started it
-      const thread = await interaction.channel.threads.create({
-        name: `${group}'s game`,
-        autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
-        type: ChannelType.PrivateThread,
-        invitable: false
-      });
-      await thread.members.add(interaction.user.id).catch(console.error);
-
-      // Send a message to the thread to notify the user that the game has started
-      await this.handleGame(interaction.user, group, thread).catch(console.error);
-      await interaction.editReply({
-        content: `Your game has started in ${thread}.`
-      });
-
-      // Add the member to the started members map with 0 correct answers
-      this.startedGroups.set(group, 0);
-    } catch (err) {
-      if (group) {
-        // If the game failed, remove the member from the started groups
+    if (subcommand === 'reset') {
+      // Reset the game for the group
+      if (this.startedGroups.has(group)) {
+        // Delete the thread and remove the member from the started groups
         this.startedGroups.delete(group);
+        await interaction.channel.threads.cache
+          .find((thread) => thread.name === threadName)
+          ?.delete();
+
+        await interaction.editReply({
+          content: `The game for ${group} has been reset.`
+        });
+      } else {
+        await interaction.editReply({
+          content: `The game for ${group} does not exist.`
+        });
       }
+      return true;
     }
+
+    // Check if the member is already in a thread
+    if (this.startedGroups.has(group)) return false;
+
+    // Set the thread to be private and only visible to the member who started it
+    const thread = await interaction.channel.threads.create({
+      name: threadName,
+      autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
+      type: ChannelType.PrivateThread,
+      invitable: false
+    });
+    await thread.members.add(interaction.user.id).catch(console.error);
+
+    // Send a message to the thread to notify the user that the game has started
+    await this.handleGame(interaction.user, group, thread).catch(console.error);
+    await interaction.editReply({
+      content: `Your game has started in ${thread}.`
+    });
+
+    // Add the member to the started members map with 0 correct answers
+    this.startedGroups.set(group, 0);
     return true;
   }
 
@@ -271,10 +323,9 @@ export default class extends Command<SlashCommand> {
       .then((interaction) =>
         this.handleButtonClick(user, group, interaction, promptIndex, thread, msg)
       )
-      .catch((err) => {
+      .catch(() => {
         // If the game crashed, remove the member from the started groups so they can start again
         this.startedGroups.delete(group);
-        console.error(err);
       });
   }
 

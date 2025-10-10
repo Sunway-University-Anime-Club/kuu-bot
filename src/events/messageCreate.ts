@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -78,7 +79,7 @@ export default class extends EventListener<'messageCreate'> {
     let member: Member | undefined;
 
     if (!memberWebsiteFetch || !memberWebsiteFetch.isMember) {
-      const spreadsheet = await this.checkSpreadsheet(message, embed);
+      const spreadsheet = await this.checkSpreadsheet(message);
 
       function isError(data: any): data is { error: string } {
         return data && typeof data.error === 'string';
@@ -119,25 +120,22 @@ export default class extends EventListener<'messageCreate'> {
   async isMemberWebsite(message: Message) {
     console.log('checking website');
 
-    const { default: fetch } = await import('node-fetch');
-
-    return await fetch(MEMBER_CHECK_API_URL, {
-      method: 'POST',
-      body: JSON.stringify({ discordId: message.member?.id }),
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.BACKEND_API_KEY
-      }
-    }).then(async (response) => {
-      const data = (await response.json()) as MemberSuccess | MemberError;
-      if (response.ok) return data as MemberSuccess;
-
-      console.error((data as MemberError).error);
-      return null;
-    });
+    return await axios
+      .post(
+        MEMBER_CHECK_API_URL,
+        { discordId: message.member?.id },
+        {
+          headers: { 'x-api-key': process.env.BACKEND_API_KEY }
+        }
+      )
+      .then((res) => res.data as MemberSuccess)
+      .catch((err) => {
+        console.error(err.response?.data?.error || err.message);
+        return null;
+      });
   }
 
-  async checkSpreadsheet(message: Message, embed: EmbedBuilder) {
+  async checkSpreadsheet(message: Message) {
     console.log('checking spreadsheet');
 
     // Authenticate the google client

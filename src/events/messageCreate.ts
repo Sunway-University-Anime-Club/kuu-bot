@@ -8,7 +8,6 @@ import {
   TextChannel
 } from 'discord.js';
 import { google } from 'googleapis';
-import fetch from 'node-fetch';
 import config from '../config';
 import { EventListener } from '../lib/abstract/events';
 import { VerificationButtons } from '../lib/utils';
@@ -119,6 +118,8 @@ export default class extends EventListener<'messageCreate'> {
 
   async isMemberWebsite(message: Message) {
     console.log('checking website');
+
+    const { default: fetch } = await import('node-fetch');
 
     return await fetch(MEMBER_CHECK_API_URL, {
       method: 'POST',

@@ -16,6 +16,8 @@ declare global {
       GOOGLE_UNIVERSE_DOMAIN: string;
       REGISTRATION_FORM_ID: string;
       DATABASE_URI: string;
+      BACKEND_URL: string;
+      BACKEND_API_KEY: string;
     }
   }
 }

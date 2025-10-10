@@ -24,6 +24,7 @@
   "homepage": "https://github.com/Sunway-University-Anime-Club/kuu-bot#readme",
   "devDependencies": {
     "@types/glob": "^8.1.0",
+    "@types/node-fetch": "^2.6.13",
     "drizzle-kit": "^0.21.2",
     "nodemon": "^3.0.3",
     "ts-node": "^10.9.2",
@@ -36,6 +37,7 @@
     "drizzle-orm": "^0.30.10",
     "glob": "7.2.0",
     "googleapis": "^133.0.0",
+    "node-fetch": "^3.3.2",
     "postgres": "^3.4.4"
   }
 }

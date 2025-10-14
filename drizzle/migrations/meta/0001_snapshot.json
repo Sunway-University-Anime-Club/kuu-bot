@@ -1,0 +1,51 @@
+{
+  "id": "9e15fddf-0e40-4627-b029-51769170dfa2",
+  "prevId": "a2734632-5828-43b3-9a99-c4a7be8b3b52",
+  "version": "6",
+  "dialect": "postgresql",
+  "tables": {
+    "public.discord_members": {
+      "name": "discord_members",
+      "schema": "",
+      "columns": {
+        "discord_id": {
+          "name": "discord_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "birthday": {
+          "name": "birthday",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_birth_year": {
+          "name": "has_birth_year",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "discord_id_idx": {
+          "name": "discord_id_idx",
+          "columns": [
+            "discord_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

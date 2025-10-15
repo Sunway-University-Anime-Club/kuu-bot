@@ -38,7 +38,7 @@ export default class extends EventListener<'interactionCreate'> {
     const [btnType, userId] = interaction.customId.split('-');
 
     // Get member to verify or reject
-    const member = await interaction.guild?.members.fetch(userId);
+    const member = await interaction.guild?.members.fetch(userId).catch(() => undefined);
 
     if (!member) {
       await interaction.reply({
